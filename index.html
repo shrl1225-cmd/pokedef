@@ -100,8 +100,12 @@
 
       <!-- Adaptive Canvas Container (Shrinks cleanly so UI stays large & readable) -->
       <div id="canvas-wrap" class="card-surface flex-1 min-h-[260px] rounded-xl p-1.5 relative flex items-center justify-center bg-slate-200/75 overflow-hidden">
+        <div id="spectate-banner" class="hidden absolute top-2.5 left-1/2 -translate-x-1/2 z-20 bg-indigo-700 text-white px-4 py-1.5 rounded-full shadow-xl border-2 border-indigo-300 flex items-center gap-3 text-xs font-extrabold">
+          <span id="spectate-banner-text">👁️ 관전 중</span>
+          <button id="btn-stop-spectate" class="px-2.5 py-0.5 rounded-full bg-white text-indigo-800 hover:bg-indigo-50 font-black">🏠 내 맵으로</button>
+        </div>
         <canvas id="game-canvas" class="block rounded-lg cursor-grab active:cursor-grabbing"></canvas>
-        <div id="toast-container" class="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 flex flex-col gap-1.5 z-20 w-[92%] max-w-md items-center"></div>
+        <div id="toast-container" class="pointer-events-none absolute top-12 left-1/2 -translate-x-1/2 flex flex-col gap-1.5 z-20 w-[92%] max-w-md items-center"></div>
       </div>
 
       <!-- Selected Unit Bar + Individual Level-Up (#11) -->
@@ -685,8 +689,18 @@
     const SPEED_STEPS = [1, 2, 3, 5, 10]; // #9 Up to 10x speed!
 
     // ================= GAME STATE =================
+    // Global Real-Time P2P Multiplayer Manager (PeerJS WebRTC)
+    const p2p = {
+      peer: null, isHost: false, code: null, myId: 'me', myName: '트레이너',
+      myReady: false, conns: new Map(), hostConn: null, players: [], liveP2P: false,
+      snapshots: {}, // playerId -> { name, alive, mapIndex, stageMajor, stageMinor, enemyCount, maxLap, units, enemies }
+      speedVotes: {}, // playerId -> wantedSpeed
+      syncTimer: 0
+    };
+
     const state = {
-      running: false, paused: false, speedIdx: 0, speed: 1, mode: 'solo', multiPlayerCount: 4,
+      running: false, paused: false, myAlive: true, speedIdx: 0, speed: 1, myWantedSpeed: 1,
+      spectateId: null, mode: 'solo', multiPlayerCount: 4,
       stageMajor: 1, stageMinor: 1, totalStageIndex: 1,
       gold: 45, freeHeroPulls: 0, freeFirstUnit: false, heroPity: 0,
 
@@ -1919,16 +1933,160 @@
     function updateGame(dt) {
       state.animTime += dt;
       if (!state.running || state.paused) return;
-      const steps = Math.min(10, Math.max(1, Math.ceil(state.speed)));
-      const subDt = (dt * state.speed) / steps;
-      for (let i = 0; i < steps; i++) {
-        if (!state.running) break;
-        stepSimulation(subDt);
+      if (state.myAlive) {
+        const steps = Math.min(10, Math.max(1, Math.ceil(state.speed)));
+        const subDt = (dt * state.speed) / steps;
+        for (let i = 0; i < steps; i++) {
+          if (!state.running || !state.myAlive) break;
+          stepSimulation(subDt);
+        }
+      }
+      // Periodic real-time P2P board snapshot sync (every 0.35s)
+      if (state.mode === 'multi') {
+        p2p.syncTimer += dt;
+        if (p2p.syncTimer >= 0.35) {
+          p2p.syncTimer = 0;
+          sendMyBoardSnapshot();
+          if (!p2p.liveP2P) updateSimulatedRivalSnapshots();
+          renderMulti();
+        }
       }
     }
 
+    // In local test mode (without real peers), simulate live rival snapshots so Spectate works immediately!
+    function updateSimulatedRivalSnapshots() {
+      state.rivals.forEach((r, idx) => {
+        if (!r.alive) return;
+        const preset = PRESET_MAPS[r.mapIndex];
+        const path = preset.path;
+        const simEnemies = [];
+        const cnt = Math.min(18, Math.max(2, state.enemies.length + (idx % 3)));
+        for (let i = 0; i < cnt; i++) {
+          const pIdx = Math.floor((state.animTime * 2.2 + i * 3 + idx * 5) % path.length);
+          const pt = path[pIdx];
+          simEnemies.push({ x: pt.c + 0.5, y: pt.r + 0.5, hpR: 0.3 + ((i * 17) % 70) / 100, elem: state.curWaveMeta ? state.curWaveMeta.elem : 'water', role: i === 0 ? 'miniboss' : 'normal', laps: Math.floor((state.animTime / 20) % 4) });
+        }
+        const simUnits = [
+          { defId: 'geodude', level: 2, unitLv: 1, x: 3.5, y: 3.5 },
+          { defId: 'pikachu', level: 1, unitLv: 0, x: 5.5, y: 4.5 },
+          { defId: 'cyndaquil', level: 2, unitLv: 0, x: 8.5, y: 3.5 }
+        ];
+        r.enemies = simEnemies.length;
+        p2p.snapshots[r.id] = {
+          id: r.id, name: r.name, alive: r.alive, mapIndex: r.mapIndex,
+          stageMajor: state.stageMajor, stageMinor: state.stageMinor,
+          enemyCount: simEnemies.length, maxLap: simEnemies[0]?.laps || 0,
+          units: simUnits, enemies: simEnemies
+        };
+      });
+    }
+
+    function broadcastP2P(msg) {
+      if (p2p.isHost) {
+        p2p.conns.forEach(conn => { if (conn.open) conn.send(msg); });
+      } else if (p2p.hostConn && p2p.hostConn.open) {
+        p2p.hostConn.send(msg);
+      }
+    }
+
+    function recalcMultiSpeed() {
+      if (state.mode !== 'multi') {
+        state.speed = state.myWantedSpeed;
+        $('btn-speed').textContent = `${state.speed}x`;
+        return;
+      }
+      const aliveIds = p2p.liveP2P
+        ? p2p.players.filter(p => p.alive !== false).map(p => p.id)
+        : [p2p.myId];
+      if (aliveIds.length === 0) return;
+      const votes = aliveIds.map(id => p2p.speedVotes[id] || 1);
+      state.speed = Math.min(...votes);
+      const agreed = votes.filter(v => v >= state.myWantedSpeed).length;
+      if (state.speed === state.myWantedSpeed) {
+        $('btn-speed').textContent = `${state.speed}x`;
+      } else {
+        $('btn-speed').textContent = `${state.speed}x (희망${state.myWantedSpeed}x · ${agreed}/${aliveIds.length})`;
+      }
+    }
+
+    function checkMultiWinner() {
+      if (state.mode !== 'multi') return;
+      const roster = p2p.liveP2P ? p2p.players : [{ id: p2p.myId, name: p2p.myName, alive: state.myAlive }, ...state.rivals];
+      const survivors = roster.filter(p => p.alive !== false);
+      if (survivors.length === 1 && roster.length >= 2) {
+        const winner = survivors[0];
+        state.running = false;
+        const isMe = winner.id === p2p.myId;
+        $('gameover-title').textContent = isMe ? '🏆 최후의 1인 우승!!' : `🏆 ${winner.name} 우승!`;
+        $('gameover-title').className = isMe ? 'text-2xl font-black text-amber-500 mb-2' : 'text-2xl font-black text-indigo-700 mb-2';
+        $('gameover-reason').textContent = isMe
+          ? '모든 상대를 제치고 마지막까지 살아남아 최종 우승했습니다!'
+          : `${winner.name} 님이 마지막까지 생존하여 최종 우승을 차지했습니다!`;
+        $('gameover-stats').innerHTML = `
+          <div>• 우승자: <b>${winner.name}</b></div>
+          <div>• 도달 스테이지: <b>${state.stageMajor}-${state.stageMinor}</b></div>
+          <div>• 내 처치 슬라임: <b>${state.enemiesKilledTotal}마리</b></div>
+        `;
+        $('gameover-modal').classList.remove('hidden');
+        SFX.play(isMe ? 'hero' : 'merge');
+      }
+    }
+
+    function handleP2PGameEvent(ev) {
+      if (!ev) return;
+      if (ev.kind === 'lugia_send') {
+        addMultiLog(`🌪️ ${ev.fromName}의 루기아 강풍! 슬라임 유입!`, 'text-teal-700 font-bold');
+        if (state.running && state.myAlive && state.loopPath.length > 0) {
+          spawnEnemyFromQueue({ stageIdx: state.totalStageIndex, elem: state.curWaveMeta.elem, isBigBoss: false }, 'normal');
+        }
+      } else if (ev.kind === 'jynx_spawn') {
+        addMultiLog(`💋 ${ev.fromName}의 루주라 효과로 슬라임 추가 젠!`, 'text-pink-700');
+        if (state.running && state.myAlive && state.loopPath.length > 0) {
+          spawnEnemyFromQueue({ stageIdx: state.totalStageIndex, elem: state.curWaveMeta.elem, isBigBoss: false }, 'normal');
+        }
+      } else if (ev.kind === 'map_swap' && ev.targetId === p2p.myId) {
+        loadMap(ev.newMapIndex); realignUnitsAfterMapChange();
+        addMultiLog(`🔄 ${ev.fromName}의 룰렛으로 맵 형상이 맞교환되었습니다!`, 'text-fuchsia-700 font-bold');
+        showToast(`🔄 ${ev.fromName}과 맵이 맞교환되었습니다!`);
+      }
+    }
+
+    function sendMyBoardSnapshot() {
+      if (state.mode !== 'multi' || !p2p.liveP2P) return;
+      const snap = {
+        id: p2p.myId,
+        name: p2p.myName,
+        alive: state.myAlive,
+        mapIndex: state.mapIndex,
+        stageMajor: state.stageMajor,
+        stageMinor: state.stageMinor,
+        enemyCount: state.enemies.length,
+        maxLap: state.enemies.reduce((m, e) => Math.max(m, e.laps), 0),
+        units: state.units.map(u => ({ defId: u.defId, level: u.level, unitLv: u.unitLv || 0, x: +u.x.toFixed(2), y: +u.y.toFixed(2) })),
+        enemies: state.enemies.slice(0, 45).map(e => ({ x: +e.x.toFixed(2), y: +e.y.toFixed(2), hpR: +(e.hp / e.maxHp).toFixed(2), elem: e.slimeElem, role: e.role, laps: e.laps }))
+      };
+      p2p.snapshots[p2p.myId] = snap;
+      broadcastP2P({ type: 'board_sync', snap });
+    }
+
     function triggerGameOver(reason) {
+      if (state.mode === 'multi') {
+        if (!state.myAlive) return;
+        state.myAlive = false;
+        SFX.play('fail');
+        const me = p2p.players.find(p => p.id === p2p.myId);
+        if (me) me.alive = false;
+        broadcastP2P({ type: 'player_eliminated', playerId: p2p.myId, name: p2p.myName, stage: `${state.stageMajor}-${state.stageMinor}` });
+        recalcMultiSpeed();
+        addMultiLog(`💀 탈락했습니다 (${reason}). 생존 중인 유저의 맵을 클릭해 구경할 수 있습니다!`, 'text-rose-700 font-bold');
+        showToast('💀 탈락! 다른 생존자 맵을 구경할 수 있습니다.', 'bg-rose-700 border-rose-800 text-white');
+        renderMulti();
+        checkMultiWinner();
+        return;
+      }
       state.running = false; SFX.play('fail');
+      $('gameover-title').textContent = '게임 오버';
+      $('gameover-title').className = 'text-2xl font-black text-rose-600 mb-2';
       $('gameover-reason').textContent = reason;
       $('gameover-stats').innerHTML = `
         <div>• 도달 스테이지: <b>${state.stageMajor}-${state.stageMinor}</b></div>
@@ -2029,7 +2187,51 @@
       ctx.fillText(`${el.icon}${e.laps}`, ex, ey + rad + 10);
     }
 
+    function renderSpectateBoard(snap) {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      const theme = getChapterTheme();
+      const preset = PRESET_MAPS[snap.mapIndex % PRESET_MAPS.length];
+      ctx.fillStyle = theme.bg; ctx.fillRect(0, 0, w, h);
+
+      for (let r = 0; r < GRID_ROWS; r++) {
+        for (let c = 0; c < GRID_COLS; c++) {
+          const x = offsetX + c * tileSize, y = offsetY + r * tileSize, cell = preset.grid[r][c];
+          if (cell === 1) { ctx.fillStyle = theme.path; ctx.fillRect(x + 1, y + 1, tileSize - 2, tileSize - 2); ctx.strokeStyle = theme.pathBorder; ctx.lineWidth = 1; ctx.strokeRect(x + 1, y + 1, tileSize - 2, tileSize - 2); }
+          else if (cell === 2) { ctx.fillStyle = theme.tile; ctx.fillRect(x + 2, y + 2, tileSize - 4, tileSize - 4); ctx.strokeStyle = theme.tileBorder; ctx.lineWidth = 1.5; ctx.strokeRect(x + 2, y + 2, tileSize - 4, tileSize - 4); }
+          else { ctx.fillStyle = theme.empty; ctx.fillRect(x + 1, y + 1, tileSize - 2, tileSize - 2); }
+        }
+      }
+      // Remote player's units
+      (snap.units || []).forEach(u => {
+        const def = UNIT_MAP[u.defId]; if (!def) return;
+        const elem = ELEMENTS[def.elem];
+        const ux = offsetX + (u.x - 0.45) * tileSize, uy = offsetY + (u.y - 0.45) * tileSize, size = tileSize * 0.9;
+        ctx.fillStyle = def.colors[0]; ctx.fillRect(ux, uy, size, size);
+        ctx.strokeStyle = elem.border; ctx.lineWidth = 2.5; ctx.strokeRect(ux, uy, size, size);
+        ctx.fillStyle = 'rgba(15,23,42,0.8)'; ctx.fillRect(ux + 2, uy + size - 13, size - 4, 11);
+        ctx.fillStyle = '#fff'; ctx.font = `bold ${Math.max(8, Math.floor(tileSize * 0.21))}px Inter`; ctx.textAlign = 'center';
+        ctx.fillText(def.name.slice(0, 4), ux + size / 2, uy + size - 4);
+        ctx.fillStyle = '#facc15'; ctx.font = `900 ${Math.max(9, Math.floor(tileSize * 0.22))}px Inter`;
+        ctx.fillText(`${def.hero ? '👑' : starText(u.level)}${u.unitLv > 0 ? `+${u.unitLv}` : ''}`, ux + size / 2, uy + 10);
+      });
+      // Remote player's slimes
+      (snap.enemies || []).forEach(e => {
+        const el = ELEMENTS[e.elem] || ELEMENTS.water;
+        const ex = offsetX + e.x * tileSize, ey = offsetY + e.y * tileSize;
+        const rad = e.role === 'boss' ? tileSize * 0.38 : (e.role === 'miniboss' ? tileSize * 0.31 : tileSize * 0.24);
+        ctx.fillStyle = el.slimeColor; ctx.beginPath(); ctx.arc(ex, ey, rad, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = el.slimeRim; ctx.lineWidth = 2; ctx.stroke();
+        const bw = rad * 2.2;
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(ex - bw / 2, ey - rad - 6, bw, 4);
+        ctx.fillStyle = '#22c55e'; ctx.fillRect(ex - bw / 2, ey - rad - 6, bw * Math.max(0, e.hpR), 4);
+      });
+    }
+
     function renderCanvas() {
+      if (state.spectateId && p2p.snapshots[state.spectateId]) {
+        renderSpectateBoard(p2p.snapshots[state.spectateId]);
+        return;
+      }
       const w = canvas.clientWidth, h = canvas.clientHeight;
       const theme = getChapterTheme();
       ctx.fillStyle = theme.bg; ctx.fillRect(0, 0, w, h);
@@ -2182,6 +2384,7 @@
 
     canvas.addEventListener('pointerdown', (ev) => {
       hideUnitTooltip();
+      if (state.spectateId) { showToast('관전 중입니다. 상단 [🏠 내 맵으로] 버튼을 누르세요!'); return; }
       const { r, c } = getGridCellFromClient(ev.clientX, ev.clientY);
       if (r < 0 || r >= GRID_ROWS || c < 0 || c >= GRID_COLS) return;
       if (state.devEditMode) { state.grid[r][c] = state.devBrush; state.loopPath = extractLoopPathFromGrid(state.grid); state.spawnIndices = [0]; realignUnitsAfterMapChange(); return; }
@@ -2394,19 +2597,50 @@
         betBox.classList.add('hidden'); return;
       }
       tag.textContent = state.currentDuelRivalId ? '💘 대전 성사!' : '대결 상대 지목 가능';
-      list.innerHTML = state.rivals.map(r => {
+      const others = p2p.liveP2P
+        ? p2p.players.filter(p => p.id !== p2p.myId).map(p => {
+            const snap = p2p.snapshots[p.id];
+            return { id: p.id, name: p.name, alive: p.alive !== false, mapIndex: snap ? snap.mapIndex : 0, enemies: snap ? snap.enemyCount : 0, stage: snap ? `${snap.stageMajor}-${snap.stageMinor}` : '1-1' };
+          })
+        : state.rivals.map(r => ({ id: r.id, name: r.name, alive: r.alive, mapIndex: r.mapIndex, enemies: r.enemies, stage: `${state.stageMajor}-${state.stageMinor}` }));
+
+      list.innerHTML = others.map(r => {
         const picked = state.pickedRivalId === r.id, dueling = state.currentDuelRivalId === r.id;
+        const watching = state.spectateId === r.id;
         return `
-          <div class="p-2.5 rounded-xl bg-white border-2 ${dueling ? 'border-amber-400' : (picked ? 'border-indigo-500' : 'border-slate-200')} flex items-center justify-between text-xs">
-            <div class="font-extrabold text-slate-900">${r.name} <span class="text-slate-500 font-medium">(${PRESET_MAPS[r.mapIndex].name})</span></div>
-            <button data-pick-rival="${r.id}" class="px-3 py-1 rounded-lg font-bold text-xs ${picked ? 'bg-amber-500 text-slate-950' : 'bg-indigo-600 text-white'}">
-              ${dueling ? '⚔️ 대전중' : (picked ? '💘 지목됨' : '지목')}
-            </button>
+          <div class="p-2 rounded-xl bg-white border-2 ${watching ? 'border-emerald-500 bg-emerald-50/40' : (dueling ? 'border-amber-400' : (picked ? 'border-indigo-500' : 'border-slate-200'))} flex items-center justify-between gap-1.5 text-xs">
+            <div class="min-w-0">
+              <div class="font-extrabold text-slate-900 truncate">${r.alive ? '🟢' : '💀'} ${r.name} <span class="text-slate-500 font-medium">(${r.stage} · 적 ${r.enemies})</span></div>
+              <div class="text-[11px] text-slate-500">${PRESET_MAPS[r.mapIndex % PRESET_MAPS.length].name}</div>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <button data-spectate-id="${r.id}" class="px-2 py-1 rounded-lg font-bold text-[11px] ${watching ? 'bg-emerald-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300'}">
+                ${watching ? '👁️ 보는중' : '👁️ 구경'}
+              </button>
+              <button data-pick-rival="${r.id}" class="px-2 py-1 rounded-lg font-bold text-[11px] ${picked ? 'bg-amber-500 text-slate-950' : 'bg-indigo-600 text-white'}" ${!r.alive ? 'disabled' : ''}>
+                ${dueling ? '⚔️' : (picked ? '💘' : '지목')}
+              </button>
+            </div>
           </div>
         `;
       }).join('');
       list.querySelectorAll('button[data-pick-rival]').forEach(b => {
         b.addEventListener('click', () => { state.pickedRivalId = b.dataset.pickRival; renderMulti(); });
+      });
+      list.querySelectorAll('button[data-spectate-id]').forEach(b => {
+        b.addEventListener('click', () => {
+          const tid = b.dataset.spectateId;
+          if (state.spectateId === tid) {
+            state.spectateId = null;
+            $('spectate-banner').classList.add('hidden');
+          } else {
+            state.spectateId = tid;
+            const targetObj = others.find(x => x.id === tid);
+            $('spectate-banner-text').textContent = `👁️ [${targetObj ? targetObj.name : '상대'}]의 맵 실시간 구경 중`;
+            $('spectate-banner').classList.remove('hidden');
+          }
+          renderMulti();
+        });
       });
 
       if (state.aiDuelPair && !state.currentDuelRivalId) {
@@ -2526,46 +2760,10 @@
         });
       });
 
-      // Real PeerJS (WebRTC P2P) Invite-Code Lobby (works directly on GitHub Pages with ZERO server!)
-      const p2p = {
-        peer: null,
-        isHost: false,
-        code: null,
-        myId: 'me',
-        myReady: false,
-        conns: new Map(), // host: peerId -> DataConnection
-        hostConn: null,   // guest: DataConnection to host
-        players: [],
-        liveP2P: false
-      };
-
       function setNetStatus(text, cls) {
         const el = $('lobby-net-status');
         el.textContent = text;
         el.className = `px-2 py-0.5 rounded-full text-[11px] font-bold ${cls}`;
-      }
-
-      function broadcastP2P(msg) {
-        if (p2p.isHost) {
-          p2p.conns.forEach(conn => { if (conn.open) conn.send(msg); });
-        } else if (p2p.hostConn && p2p.hostConn.open) {
-          p2p.hostConn.send(msg);
-        }
-      }
-
-      function handleP2PGameEvent(ev) {
-        if (!ev) return;
-        if (ev.kind === 'lugia_send') {
-          addMultiLog(`🌪️ ${ev.fromName}의 루기아 강풍! 추가 슬라임 유입!`, 'text-teal-700 font-bold');
-          if (state.running && state.loopPath.length > 0) {
-            spawnEnemyFromQueue({ stageIdx: state.totalStageIndex, elem: state.curWaveMeta.elem, isBigBoss: false }, 'normal');
-          }
-        } else if (ev.kind === 'jynx_spawn') {
-          addMultiLog(`💋 ${ev.fromName}의 루주라 효과로 슬라임 1마리 추가 젠!`, 'text-pink-700');
-          if (state.running && state.loopPath.length > 0) {
-            spawnEnemyFromQueue({ stageIdx: state.totalStageIndex, elem: state.curWaveMeta.elem, isBigBoss: false }, 'normal');
-          }
-        }
       }
 
       function renderLobby() {
@@ -2610,7 +2808,7 @@
 
       $('btn-create-room').addEventListener('click', () => {
         cleanupPeer();
-        const nick = ($('input-nickname').value || '방장').trim();
+        const nick = ($('input-nickname').value || '방장').trim(); p2p.myName = nick;
         const randCode = 'PK' + Math.floor(1000 + Math.random() * 9000);
         p2p.isHost = true; p2p.code = randCode; p2p.myReady = false;
         $('input-room-code').value = randCode;
@@ -2638,6 +2836,19 @@
                   const pl = p2p.players.find(x => x.id === conn.peer);
                   if (pl) pl.ready = !pl.ready;
                   hostCheckAllReady();
+                } else if (msg.type === 'board_sync') {
+                  p2p.snapshots[msg.snap.id] = msg.snap;
+                  p2p.conns.forEach((c, cid) => { if (cid !== conn.peer && c.open) c.send(msg); });
+                } else if (msg.type === 'speed_vote') {
+                  p2p.speedVotes[msg.playerId] = msg.speed;
+                  p2p.conns.forEach((c, cid) => { if (cid !== conn.peer && c.open) c.send(msg); });
+                  recalcMultiSpeed();
+                } else if (msg.type === 'player_eliminated') {
+                  const pl = p2p.players.find(x => x.id === msg.playerId);
+                  if (pl) pl.alive = false;
+                  p2p.conns.forEach((c, cid) => { if (cid !== conn.peer && c.open) c.send(msg); });
+                  addMultiLog(`💀 ${msg.name} 탈락! (${msg.stage})`, 'text-rose-700 font-bold');
+                  recalcMultiSpeed(); renderMulti(); checkMultiWinner();
                 } else if (msg.type === 'game_event') {
                   handleP2PGameEvent(msg.event);
                   p2p.conns.forEach((c, cid) => { if (cid !== conn.peer && c.open) c.send(msg); });
@@ -2668,7 +2879,7 @@
         const code = ($('input-room-code').value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
         if (!code) { showToast('초대코드를 입력하세요! (예: PK4829)', 'bg-rose-600 border-rose-700 text-white'); return; }
         cleanupPeer();
-        const nick = ($('input-nickname').value || '게스트').trim();
+        const nick = ($('input-nickname').value || '게스트').trim(); p2p.myName = nick;
         p2p.isHost = false; p2p.code = code; p2p.myReady = false;
 
         if (typeof window.Peer !== 'undefined') {
@@ -2697,6 +2908,16 @@
                   state.multiPlayerCount = Math.max(2, p2p.players.length);
                   showToast('🚀 전원 준비완료! 게임을 시작합니다!', 'bg-emerald-600 border-emerald-700 text-white');
                   setTimeout(() => launchGame(), 400);
+                } else if (msg.type === 'board_sync') {
+                  p2p.snapshots[msg.snap.id] = msg.snap;
+                } else if (msg.type === 'speed_vote') {
+                  p2p.speedVotes[msg.playerId] = msg.speed;
+                  recalcMultiSpeed();
+                } else if (msg.type === 'player_eliminated') {
+                  const pl = p2p.players.find(x => x.id === msg.playerId);
+                  if (pl) pl.alive = false;
+                  addMultiLog(`💀 ${msg.name} 탈락! (${msg.stage})`, 'text-rose-700 font-bold');
+                  recalcMultiSpeed(); renderMulti(); checkMultiWinner();
                 } else if (msg.type === 'game_event') {
                   handleP2PGameEvent(msg.event);
                 } else if (msg.type === 'error') {
@@ -2752,7 +2973,10 @@
     function launchGame() {
       if (chosenStarters.length !== 3) return;
       SFX.init();
-      state.running = true; state.paused = false; state.mode = chosenStartMode;
+      state.running = true; state.paused = false; state.myAlive = true; state.spectateId = null;
+      state.myWantedSpeed = 1; state.speedIdx = 0; state.speed = 1; state.mode = chosenStartMode;
+      p2p.speedVotes = {}; p2p.players.forEach(p => { p.alive = true; p2p.speedVotes[p.id] = 1; });
+      $('spectate-banner').classList.add('hidden');
       state.stageMajor = 1; state.stageMinor = 1; state.totalStageIndex = 1;
       state.gold = 45; state.freeHeroPulls = 0; state.freeFirstUnit = false; state.heroPity = 0;
       state.diceStock = 1; state.diceOddEven = null; state.diceCanRerollCur = false; state.diceRollingAnim = false;
@@ -2807,11 +3031,21 @@
         });
       });
 
-      // #9 Speed up to 10x (1x -> 2x -> 3x -> 5x -> 10x)
+      // Unanimous Speed Voting in Multi (all players must agree for higher speed!)
       $('btn-speed').addEventListener('click', () => {
         state.speedIdx = (state.speedIdx + 1) % SPEED_STEPS.length;
-        state.speed = SPEED_STEPS[state.speedIdx];
-        $('btn-speed').textContent = `${state.speed}x`;
+        state.myWantedSpeed = SPEED_STEPS[state.speedIdx];
+        p2p.speedVotes[p2p.myId] = state.myWantedSpeed;
+        if (state.mode === 'multi' && p2p.liveP2P) {
+          broadcastP2P({ type: 'speed_vote', playerId: p2p.myId, speed: state.myWantedSpeed });
+        }
+        recalcMultiSpeed();
+      });
+
+      $('btn-stop-spectate').addEventListener('click', () => {
+        state.spectateId = null;
+        $('spectate-banner').classList.add('hidden');
+        renderMulti();
       });
       $('btn-pause').addEventListener('click', () => { state.paused = !state.paused; $('btn-pause').textContent = state.paused ? '재개' : '일시정지'; });
       $('btn-mute').addEventListener('click', () => { SFX.muted = !SFX.muted; $('btn-mute').textContent = SFX.muted ? '🔇' : '🔊'; });
