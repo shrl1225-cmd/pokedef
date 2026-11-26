@@ -44,96 +44,94 @@
     }
   </style>
 </head>
-<body class="min-h-screen xl:h-screen xl:overflow-hidden flex flex-col">
+<body class="h-[100dvh] overflow-hidden flex flex-col">
 
-  <!-- TOP HUD (Large Readable Text) -->
-  <header class="card-surface shrink-0 z-30 px-4 py-2 flex flex-wrap items-center justify-between gap-2">
-    <div class="flex items-center gap-2.5 flex-wrap">
-      <span class="font-black tracking-tight text-indigo-700 text-lg">⚡ 포켓 랜덤 디펜스</span>
-      <span id="hud-mode" class="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 font-extrabold text-xs">솔로</span>
-      <span id="hud-stage" class="px-3 py-0.5 rounded-full bg-emerald-100 text-emerald-950 font-extrabold text-sm border border-emerald-300">1-1 풀숲 초원</span>
+  <!-- TOP HUD (Ultra-compact on mobile, full on desktop) -->
+  <header class="card-surface shrink-0 z-30 px-2 sm:px-4 py-1 sm:py-2 flex flex-wrap items-center justify-between gap-1 sm:gap-2">
+    <div class="flex items-center gap-1.5 sm:gap-2">
+      <span class="hidden sm:inline font-black tracking-tight text-indigo-700 text-base lg:text-lg">⚡ 포켓 랜덤 디펜스</span>
+      <span id="hud-mode" class="px-1.5 sm:px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 font-extrabold text-[11px] sm:text-xs">솔로</span>
+      <span id="hud-stage" class="px-2 sm:px-3 py-0.5 rounded-full bg-emerald-100 text-emerald-950 font-extrabold text-xs sm:text-sm border border-emerald-300">1-1</span>
       <span id="hud-map-name" class="hidden lg:inline px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold text-xs border border-slate-200">맵: 쌍문 순환 성채</span>
     </div>
 
-    <div class="flex items-center gap-2.5 flex-wrap">
-      <div class="flex items-center gap-1.5 bg-amber-50 px-3 py-1 rounded-xl border border-amber-300 text-sm">
+    <div class="flex items-center gap-1 sm:gap-2 flex-wrap">
+      <div class="flex items-center gap-1 bg-amber-50 px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg border border-amber-300 text-xs sm:text-sm">
         <span>💰</span>
-        <span id="hud-gold" class="font-black text-amber-800 text-base">45</span>
-        <span id="hud-interest" class="text-xs font-bold text-amber-700">(이자 +4)</span>
+        <span id="hud-gold" class="font-black text-amber-800">45</span>
+        <span id="hud-interest" class="hidden sm:inline text-xs font-bold text-amber-700">(이자 +4)</span>
       </div>
-      <div class="flex items-center gap-1.5 bg-rose-50 px-3 py-1 rounded-xl border border-rose-200 text-sm" title="필드 슬라임 수 / 최대 허용치">
-        <span>🟢</span>
-        <span id="hud-enemies" class="font-extrabold text-rose-700">0/40</span>
+      <div class="flex items-center gap-0.5 bg-rose-50 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border border-rose-200 text-xs sm:text-sm">
+        <span>🟢</span><span id="hud-enemies" class="font-extrabold text-rose-700">0/100</span>
       </div>
-      <div class="flex items-center gap-1.5 bg-sky-50 px-3 py-1 rounded-xl border border-sky-200 text-sm" title="최대 순환 바퀴 (5바퀴 시 패배)">
-        <span>🔄</span>
-        <span id="hud-max-lap" class="font-extrabold text-sky-700">0/5</span>
+      <div class="flex items-center gap-0.5 bg-sky-50 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border border-sky-200 text-xs sm:text-sm">
+        <span>🔄</span><span id="hud-max-lap" class="font-extrabold text-sky-700">0/5</span>
       </div>
 
-      <div class="flex items-center gap-1.5">
-        <button id="btn-speed" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 font-black text-xs text-indigo-900">1x</button>
-        <button id="btn-pause" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 font-bold text-xs text-slate-800">일시정지</button>
-        <button id="btn-mute" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 font-bold text-sm">🔊</button>
-        <button id="btn-help" class="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 font-extrabold text-xs text-emerald-900">❓ 도움말</button>
-        <button id="btn-codex" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 font-extrabold text-xs text-indigo-900">📖 도감</button>
-        <button id="btn-dev-toggle" class="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-300 font-extrabold text-xs text-amber-900">🛠️ 개발자</button>
+      <div class="flex items-center gap-1">
+        <button id="btn-speed" class="px-2 sm:px-3 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 font-black text-[11px] sm:text-xs text-indigo-900">1x</button>
+        <button id="btn-pause" class="px-2 sm:px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 font-bold text-[11px] sm:text-xs text-slate-800">⏸</button>
+        <button id="btn-mute" class="hidden sm:inline-block px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 font-bold text-xs">🔊</button>
+        <button id="btn-help" class="px-2 sm:px-3 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 font-extrabold text-[11px] sm:text-xs text-emerald-900">❓<span class="hidden sm:inline"> 도움말</span></button>
+        <button id="btn-codex" class="px-2 sm:px-3 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 font-extrabold text-[11px] sm:text-xs text-indigo-900">📖<span class="hidden sm:inline"> 도감</span></button>
+        <button id="btn-dev-toggle" class="hidden sm:inline-block px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-300 font-extrabold text-xs text-amber-900">🛠️ 개발자</button>
       </div>
     </div>
   </header>
 
-  <!-- MAIN ADAPTIVE GRID (Field scales smaller to give big, comfortable UI text!) -->
-  <main class="flex-1 min-h-0 p-2.5 grid grid-cols-1 xl:grid-cols-12 gap-3 max-w-[1800px] w-full mx-auto">
+  <!-- MAIN 1-SCREEN LAYOUT: Mobile = Vertical Flex (Map+Bench top, Scrollable Tabs bottom); Desktop = 7:5 Grid -->
+  <main class="flex-1 min-h-0 p-1.5 sm:p-2.5 flex flex-col xl:grid xl:grid-cols-12 gap-1.5 sm:gap-3 max-w-[1800px] w-full mx-auto overflow-hidden">
 
-    <!-- LEFT (7 cols): COMPACT ADAPTIVE BATTLEFIELD & BENCH -->
-    <section class="xl:col-span-7 flex flex-col gap-2 min-h-0">
-      <!-- Wave Timer, Forecast & Boss Limit Banner -->
-      <div class="card-surface shrink-0 rounded-xl px-3.5 py-2 flex flex-wrap items-center justify-between gap-2">
-        <div class="flex items-center gap-2.5 flex-wrap text-sm">
-          <span id="wave-status-badge" class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-950 font-black text-xs">시작 6초</span>
-          <span id="wave-cur-forecast" class="font-extrabold text-slate-900">현재: -</span>
-          <span class="text-slate-300">|</span>
-          <span id="wave-next-forecast" class="font-bold text-indigo-700">다음: -</span>
+    <!-- LEFT / TOP: BATTLEFIELD & 1-ROW BENCH -->
+    <section class="shrink-0 xl:shrink xl:col-span-7 flex flex-col gap-1.5 sm:gap-2 min-h-0">
+      <!-- Wave Timer & Forecast -->
+      <div class="card-surface shrink-0 rounded-xl px-2.5 sm:px-3.5 py-1 sm:py-1.5 flex items-center justify-between gap-1.5">
+        <div class="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-sm min-w-0 truncate">
+          <span id="wave-status-badge" class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-950 font-black text-[11px] sm:text-xs shrink-0">시작 6초</span>
+          <span id="wave-cur-forecast" class="font-extrabold text-slate-900 truncate">현재: -</span>
+          <span class="hidden sm:inline text-slate-300">|</span>
+          <span id="wave-next-forecast" class="hidden sm:inline font-bold text-indigo-700 truncate">다음: -</span>
         </div>
-        <button id="btn-start-wave" class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-sm">
-          ▶ 바로 소환
+        <button id="btn-start-wave" class="shrink-0 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[11px] sm:text-xs shadow-sm">
+          ▶ 소환
         </button>
       </div>
 
-      <!-- Adaptive Canvas Container (Shrinks cleanly so UI stays large & readable) -->
-      <div id="canvas-wrap" class="card-surface flex-1 min-h-[260px] rounded-xl p-1.5 relative flex items-center justify-center bg-slate-200/75 overflow-hidden">
-        <div id="spectate-banner" class="hidden absolute top-2.5 left-1/2 -translate-x-1/2 z-20 bg-indigo-700 text-white px-4 py-1.5 rounded-full shadow-xl border-2 border-indigo-300 flex items-center gap-3 text-xs font-extrabold">
+      <!-- Adaptive Canvas Container (Fits phone width cleanly with zero overflow!) -->
+      <div id="canvas-wrap" class="card-surface xl:flex-1 min-h-0 rounded-xl p-1 relative flex items-center justify-center bg-slate-200/75 overflow-hidden">
+        <div id="spectate-banner" class="hidden absolute top-1.5 left-1/2 -translate-x-1/2 z-20 bg-indigo-700 text-white px-3 py-1 rounded-full shadow-xl border-2 border-indigo-300 flex items-center gap-2 text-[11px] font-extrabold">
           <span id="spectate-banner-text">👁️ 관전 중</span>
-          <button id="btn-stop-spectate" class="px-2.5 py-0.5 rounded-full bg-white text-indigo-800 hover:bg-indigo-50 font-black">🏠 내 맵으로</button>
+          <button id="btn-stop-spectate" class="px-2 py-0.5 rounded-full bg-white text-indigo-800 font-black">🏠 내 맵</button>
         </div>
         <canvas id="game-canvas" style="touch-action: none;" class="block rounded-lg cursor-grab active:cursor-grabbing"></canvas>
-        <div id="toast-container" class="pointer-events-none absolute top-12 left-1/2 -translate-x-1/2 flex flex-col gap-1.5 z-20 w-[92%] max-w-md items-center"></div>
+        <div id="toast-container" class="pointer-events-none absolute top-10 left-1/2 -translate-x-1/2 flex flex-col gap-1 z-20 w-[92%] max-w-md items-center"></div>
       </div>
 
-      <!-- Selected Unit Bar + Individual Level-Up (#11) -->
-      <div id="selection-bar" class="card-surface shrink-0 rounded-xl px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 min-h-[54px]">
-        <div id="selection-info" class="text-slate-700 text-sm font-medium">
-          필드 유닛을 클릭하면 <b>개인 강화</b>·대기석 회수·판매를 할 수 있고, 드래그로 배치 및 자리 맞교환이 가능합니다.
+      <!-- Compact Selection Bar -->
+      <div id="selection-bar" class="card-surface shrink-0 rounded-xl px-2.5 sm:px-3.5 py-1 sm:py-1.5 flex flex-wrap items-center justify-between gap-1.5 min-h-[34px] sm:min-h-[48px]">
+        <div id="selection-info" class="text-slate-700 text-[11px] sm:text-sm font-medium truncate">
+          대기석 터치 → 맵 터치로 배치 · 유닛 터치로 강화/이동
         </div>
-        <div id="selection-actions" class="flex items-center gap-1.5 flex-wrap hidden">
-          <button id="btn-unit-lvup" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-sm">⬆ 개인강화 (15G)</button>
-          <button id="btn-mobile-move" class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs">🔀 이동/교환</button>
-          <button id="btn-return-bench" class="px-3 py-1.5 rounded-lg bg-slate-600 hover:bg-slate-500 text-white font-bold text-xs">대기석</button>
-          <button id="btn-sell-unit" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs">판매</button>
+        <div id="selection-actions" class="flex items-center gap-1 flex-wrap hidden">
+          <button id="btn-unit-lvup" class="px-2 py-1 rounded-lg bg-amber-500 text-slate-950 font-black text-[11px] sm:text-xs">⬆ 강화</button>
+          <button id="btn-mobile-move" class="px-2 py-1 rounded-lg bg-sky-600 text-white font-bold text-[11px] sm:text-xs">🔀 이동</button>
+          <button id="btn-return-bench" class="px-2 py-1 rounded-lg bg-slate-600 text-white font-bold text-[11px] sm:text-xs">회수</button>
+          <button id="btn-sell-unit" class="px-2 py-1 rounded-lg bg-rose-600 text-white font-bold text-[11px] sm:text-xs">판매</button>
         </div>
       </div>
 
-      <!-- Bench (8 slots, 5-star merge supported) -->
-      <div id="bench-dropzone" class="card-surface shrink-0 rounded-xl p-2.5 transition-colors">
-        <div class="flex items-center justify-between mb-1.5">
-          <span class="text-sm font-extrabold text-slate-800">대기석 (최대 8칸 · 3마리 모이면 최대 5성까지 자동 합성!)</span>
+      <!-- Single-Row Compact Bench on Mobile (8 slots in 1 row!) -->
+      <div id="bench-dropzone" class="card-surface shrink-0 rounded-xl p-1.5 sm:p-2 transition-colors">
+        <div class="hidden sm:flex items-center justify-between mb-1">
+          <span class="text-xs font-extrabold text-slate-800">대기석 (최대 8칸 · 3마리 자동 5성 합성)</span>
           <span id="bench-count" class="text-xs font-extrabold text-slate-600">0 / 8</span>
         </div>
-        <div id="bench-grid" class="grid grid-cols-4 sm:grid-cols-8 gap-2"></div>
+        <div id="bench-grid" class="grid grid-cols-8 gap-1 sm:gap-1.5"></div>
       </div>
     </section>
 
-    <!-- RIGHT (5 cols): SPACIOUS, LARGE-TEXT CONTROL PANEL -->
-    <aside class="xl:col-span-5 flex flex-col gap-2 min-h-0">
+    <!-- RIGHT / BOTTOM: FILLS REMAINING SCREEN HEIGHT ON MOBILE! -->
+    <aside class="flex-1 xl:col-span-5 flex flex-col gap-1.5 sm:gap-2 min-h-0 overflow-hidden">
       <!-- Tabs -->
       <div class="card-surface shrink-0 rounded-xl p-1.5 grid grid-cols-4 gap-1.5 text-sm font-extrabold">
         <button data-tab="shop" class="tab-btn py-2 rounded-lg bg-indigo-600 text-white shadow-sm">🎲 상점</button>
@@ -290,8 +288,8 @@
         </div>
       </div>
 
-      <!-- Readable Combat Log -->
-      <div class="card-surface shrink-0 rounded-xl p-2.5">
+      <!-- Readable Combat Log (Desktop only so mobile has full space for Shop/Controls) -->
+      <div class="hidden xl:block card-surface shrink-0 rounded-xl p-2.5">
         <div class="text-xs font-extrabold text-slate-800 mb-1">📜 전투 & 속성 반응 로그</div>
         <div id="combat-log" class="text-xs text-slate-700 h-20 overflow-y-auto custom-scroll space-y-0.5"></div>
       </div>
@@ -317,8 +315,8 @@
             <div class="text-xs text-slate-600 mt-0.5">기본 체력 100% · 랜덤 맵</div>
           </button>
           <button data-mode="coop" class="mode-opt p-3 rounded-2xl border-2 border-slate-200 bg-white text-left hover:border-slate-400">
-            <div class="font-extrabold text-sm text-emerald-800">🤝 협동모드</div>
-            <div class="text-xs text-slate-600 mt-0.5">적 체력 250% · 파트너 지원</div>
+            <div class="font-extrabold text-sm text-emerald-800">🤝 협동모드 (최대 10인)</div>
+            <div class="text-xs text-slate-600 mt-0.5">인원별 HP 자동 조정 · 실시간 협동 지원</div>
           </button>
           <button data-mode="multi" class="mode-opt p-3 rounded-2xl border-2 border-slate-200 bg-white text-left hover:border-slate-400">
             <div class="font-extrabold text-sm text-fuchsia-800">⚔️ 멀티모드 (최대 10인)</div>
@@ -735,7 +733,7 @@
       { id: 'element', name: '속성 공명', icon: '✨', desc: '속성 반응 피해 및 상태 지속시간 +20%/Lv' },
       { id: 'bounty', name: '처치 현상금', icon: '💰', desc: '적 처치 시 15%/Lv 확률로 추가 +1G 획득' },
       { id: 'heroic', name: '영웅 소환사', icon: '👑', desc: '영웅 뽑기 시 25%/Lv 확률로 천장 스택 +2' },
-      { id: 'ward', name: '결계의 수호자', icon: '🛡️', desc: '내 필드 적 이속 -8%/Lv & 최대 적 허용 +4/Lv' }
+      { id: 'ward', name: '결계의 수호자', icon: '🛡️', desc: '내 필드 적 이속 -8%/Lv & 최대 적 허용 +10/Lv' }
     ];
 
     const ROULETTE_TABLE = [
@@ -806,7 +804,15 @@
     // ================= HELPERS =================
     function $(id) { return document.getElementById(id); }
     function getAbilityLv(id) { return state.abilities[id] || 0; }
-    function getMaxEnemiesAllowed() { return 40 + getAbilityLv('ward') * 4; }
+    function getMaxEnemiesAllowed() { return 100 + getAbilityLv('ward') * 10; }
+    // Sublinear co-op HP scaling (2P=250%, diminishing increments up to 10P=750%, inspired by Terraria & Monster Hunter)
+    const COOP_HP_TABLE = [1.0, 1.6, 2.5, 3.3, 4.0, 4.7, 5.3, 5.9, 6.5, 7.0, 7.5];
+    function getCoopPlayerCount() {
+      return (p2p.liveP2P && p2p.players.length > 0) ? Math.min(10, p2p.players.length) : 2;
+    }
+    function getCoopHpMultiplier() {
+      return COOP_HP_TABLE[getCoopPlayerCount()] || 2.5;
+    }
     function getGlobalUpgradeCost(lv) { return Math.round(45 * Math.pow(1.45, lv)); }
     function getIndividualUpgradeCost(lv) { return Math.round(15 * Math.pow(1.38, lv)); } // #11 Much cheaper!
     function getHeroProb(nextPullNum) {
@@ -1087,12 +1093,26 @@
       const closeBtn = $('btn-close-roulette');
       if (reward.id === 'map_swap' && state.mode === 'multi') {
         const picker = $('map-swap-picker'), btns = $('map-swap-buttons');
+        const targets = p2p.liveP2P
+          ? p2p.players.filter(p => p.id !== p2p.myId && p.alive !== false).map(p => ({ id: p.id, name: p.name, mapIndex: p2p.snapshots[p.id]?.mapIndex ?? 0 }))
+          : state.rivals.filter(r => r.alive);
+        if (targets.length === 0) { state.gold += 30; closeBtn.classList.remove('hidden'); return; }
         picker.classList.remove('hidden');
-        btns.innerHTML = state.rivals.filter(r => r.alive).map(r => `<button data-swap-id="${r.id}" class="py-1.5 px-2 rounded-lg bg-fuchsia-600 text-white text-xs font-bold">${r.name}</button>`).join('');
+        btns.innerHTML = targets.map(r => `<button data-swap-id="${r.id}" data-swap-map="${r.mapIndex}" class="py-1.5 px-2 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs font-bold">${r.name} (${PRESET_MAPS[r.mapIndex % PRESET_MAPS.length].name})</button>`).join('');
         btns.querySelectorAll('button').forEach(b => {
           b.addEventListener('click', () => {
-            const rival = state.rivals.find(x => x.id === b.dataset.swapId);
-            if (rival) { const m = state.mapIndex; loadMap(rival.mapIndex); rival.mapIndex = m; realignUnitsAfterMapChange(); }
+            const tid = b.dataset.swapId;
+            const targetMap = Number(b.dataset.swapMap);
+            const myOldMap = state.mapIndex;
+            loadMap(targetMap); realignUnitsAfterMapChange();
+            if (p2p.liveP2P) {
+              broadcastP2P({ type: 'game_event', event: { kind: 'map_swap', fromId: p2p.myId, fromName: p2p.myName, targetId: tid, newMapIndex: myOldMap } });
+              sendMyBoardSnapshot();
+            } else {
+              const rival = state.rivals.find(x => x.id === tid);
+              if (rival) rival.mapIndex = myOldMap;
+            }
+            addMultiLog(`🔄 맵 형상 맞교환 완료!`, 'text-fuchsia-700 font-bold');
             $('roulette-modal').classList.add('hidden'); renderMulti();
           });
         });
@@ -1301,7 +1321,12 @@
 
       if (state.mode === 'multi' && grantClearBonus) {
         if (state.currentDuelRivalId) {
-          state.gold += 16; addMultiLog(`🏆 대전 보상 +16G!`, 'text-amber-700 font-bold');
+          state.gold += 25;
+          if (p2p.liveP2P) {
+            broadcastP2P({ type: 'game_event', event: { kind: 'duel_win', fromId: p2p.myId, fromName: p2p.myName, rivalId: state.currentDuelRivalId } });
+          }
+          addMultiLog(`🏆 대전 먼저 클리어 승리 보상 +25G!`, 'text-amber-700 font-bold');
+          showToast('🏆 대전 승리 보상 +25G!', 'bg-amber-600 border-amber-700 text-white');
         } else if (state.betTargetId && state.aiDuelPair) {
           if (Math.random() < 0.55) { const p = Math.round(state.betAmount * 1.8); state.gold += p; addMultiLog(`🎰 베팅 적중 +${p}G!`, 'text-emerald-700 font-bold'); }
           else addMultiLog(`🎰 베팅 실패`, 'text-rose-600');
@@ -1325,7 +1350,7 @@
       let hp = Math.round(160 * Math.pow(1.42, idx - 1));
       if (role === 'miniboss') hp = Math.round(hp * 4.8);
       if (role === 'boss') hp = Math.round(hp * 12.5);
-      if (state.mode === 'coop') hp = Math.round(hp * 2.5);
+      if (state.mode === 'coop') hp = Math.round(hp * getCoopHpMultiplier());
 
       const traitSpd = (role === 'boss' && q.bossTrait) ? q.bossTrait.speedMult : 1.0;
       const baseSpeed = role === 'boss' ? (0.98 * traitSpd) : (role === 'miniboss' ? 1.08 : (1.28 + Math.min(0.95, idx * 0.03)));
@@ -1497,6 +1522,9 @@
       if (Math.random() < getAbilityLv('bounty') * 0.15) reward += 1;
       state.gold += reward;
       spawnFloatText(enemy.x, enemy.y - 0.25, `+${reward}G`, '#b45309');
+      if (state.mode === 'coop' && p2p.liveP2P && enemy.boss) {
+        broadcastP2P({ type: 'game_event', event: { kind: 'coop_support', fromId: p2p.myId, fromName: p2p.myName } });
+      }
 
       if (attacker && attacker.defId === 'kartana') {
         const foldProb = Math.min(0.95, 0.45 + (attacker.level - 1) * 0.12);
@@ -1696,10 +1724,15 @@
             if (liveTarget) {
               applyDamageAndElement(liveTarget, p.dmg, 'ice', p.attacker);
               if (!liveTarget.boss && Math.random() < 0.22 + (p.attacker ? (p.attacker.level - 1) * 0.08 : 0)) {
+                const charmElem = liveTarget.slimeElem;
                 liveTarget.hp = 0; handleEnemyKill(liveTarget, p.attacker);
                 const ally = state.units[Math.floor(Math.random() * state.units.length)];
                 if (ally) ally.bonusAtkMult += 0.12;
                 spawnFloatText(liveTarget.x, liveTarget.y, '💋 아군강화!', '#db2777');
+                if ((state.mode === 'multi' || state.mode === 'coop') && p2p.liveP2P) {
+                  broadcastP2P({ type: 'game_event', event: { kind: 'jynx_spawn', fromId: p2p.myId, fromName: p2p.myName, elem: charmElem, stageIdx: state.totalStageIndex } });
+                  addMultiLog('💋 루주라 발동! 다른 모든 유저 필드에 슬라임 1마리 추가 젠!', 'text-pink-700 font-bold');
+                }
               }
             }
           } else {
@@ -1930,15 +1963,18 @@
           u.cd = Math.max(100, 180 - (u.level - 1) * 20);
           spawnEffect(GRID_COLS / 2, GRID_ROWS / 2, 8, '#14b8a6', 'ring');
           state.enemies.forEach(e => { e.airborneTimer = 1.4; });
-          const buildable = [];
-          for (let r = 0; r < GRID_ROWS; r++) for (let c = 0; c < GRID_COLS; c++) if (state.grid[r][c] === 2) buildable.push({ r, c });
-          buildable.sort(() => Math.random() - 0.5);
-          state.units.forEach((ally, idx) => {
-            if (UNIT_MAP[ally.defId].placement !== 'tile') return;
-            const slot = buildable[idx % buildable.length];
-            if (slot) { ally.r = slot.r; ally.c = slot.c; ally.x = slot.c + 0.5; ally.y = slot.r + 0.5; }
-          });
-          if (state.mode === 'multi' && state.enemies.length > 0) { state.enemies = []; addMultiLog('🌪️ 루기아 강풍! 적 전송!', 'text-teal-700 font-bold'); }
+          shuffleMyBoardUnits();
+          if (state.mode === 'multi' || (state.mode === 'coop' && p2p.liveP2P)) {
+            const cleared = state.enemies.length;
+            state.enemies = [];
+            const aliveOthers = p2p.liveP2P ? p2p.players.filter(p => p.id !== p2p.myId && p.alive !== false).length : Math.max(1, state.rivals.length);
+            const perRival = cleared > 0 ? Math.max(1, Math.ceil(cleared / Math.max(1, aliveOthers))) : 0;
+            if (p2p.liveP2P) {
+              broadcastP2P({ type: 'game_event', event: { kind: 'lugia_send', fromId: p2p.myId, fromName: p2p.myName, sendCount: perRival, stageIdx: state.totalStageIndex, elem: state.curWaveMeta.elem } });
+            }
+            addMultiLog(`🌪️ 루기아 강풍! 내 적 ${cleared}마리 제거 → 상대 전원 유닛 재배치 + 각 ${perRival}마리 분산 전송!`, 'text-teal-700 font-bold');
+            showToast(`🌪️ 루기아 발동! 상대 유닛 재배치 + 적 전송!`, 'bg-teal-700 border-teal-800 text-white');
+          }
           continue;
         }
 
@@ -2016,7 +2052,7 @@
         }
       }
       // Real-time P2P board snapshot sync (~every 0.16s for smooth live spectating!)
-      if (state.mode === 'multi' && p2p.liveP2P) {
+      if ((state.mode === 'multi' || state.mode === 'coop') && p2p.liveP2P) {
         p2p.syncTimer += dt;
         if (p2p.syncTimer >= 0.16) {
           p2p.syncTimer = 0;
@@ -2035,7 +2071,7 @@
     }
 
     function recalcMultiSpeed() {
-      if (state.mode !== 'multi') {
+      if (state.mode !== 'multi' && !(state.mode === 'coop' && p2p.liveP2P)) {
         state.speed = state.myWantedSpeed;
         $('btn-speed').textContent = `${state.speed}x`;
         return;
@@ -2074,10 +2110,21 @@
     }
 
     function checkMultiWinner() {
-      if (state.mode !== 'multi' || !p2p.gameStarted) return;
+      if (!p2p.gameStarted) return;
       const roster = p2p.players;
       if (roster.length < 2) return;
       const survivors = roster.filter(p => p.alive !== false);
+      if (state.mode === 'coop') {
+        if (survivors.length === 0) {
+          state.running = false; p2p.gameStarted = false;
+          $('gameover-title').textContent = '💀 협동 팀 전멸';
+          $('gameover-title').className = 'text-2xl font-black text-rose-600 mb-2';
+          $('gameover-reason').textContent = `모든 팀원이 쓰러졌습니다 (도달: ${state.stageMajor}-${state.stageMinor}).`;
+          $('gameover-modal').classList.remove('hidden');
+        }
+        return;
+      }
+      if (state.mode !== 'multi') return;
       if (survivors.length === 1) {
         const winner = survivors[0];
         if (p2p.isHost && p2p.liveP2P) {
@@ -2089,27 +2136,72 @@
       }
     }
 
+    function shuffleMyBoardUnits() {
+      const buildable = [];
+      for (let r = 0; r < GRID_ROWS; r++) for (let c = 0; c < GRID_COLS; c++) if (state.grid[r][c] === 2) buildable.push({ r, c });
+      buildable.sort(() => Math.random() - 0.5);
+      let bIdx = 0;
+      state.units.forEach(ally => {
+        if (UNIT_MAP[ally.defId].placement !== 'tile') return;
+        const slot = buildable[bIdx % buildable.length];
+        bIdx++;
+        if (slot) { ally.r = slot.r; ally.c = slot.c; ally.x = slot.c + 0.5; ally.y = slot.r + 0.5; }
+      });
+    }
+
     function handleP2PGameEvent(ev) {
-      if (!ev) return;
+      if (!ev || ev.fromId === p2p.myId) return;
       if (ev.kind === 'lugia_send') {
-        addMultiLog(`🌪️ ${ev.fromName}의 루기아 강풍! 슬라임 유입!`, 'text-teal-700 font-bold');
         if (state.running && state.myAlive && state.loopPath.length > 0) {
-          spawnEnemyFromQueue({ stageIdx: state.totalStageIndex, elem: state.curWaveMeta.elem, isBigBoss: false }, 'normal');
+          // Shuffle receiver's units AND spawn the equally distributed enemies!
+          shuffleMyBoardUnits();
+          spawnEffect(GRID_COLS / 2, GRID_ROWS / 2, 8, '#14b8a6', 'ring');
+          const count = Math.max(1, Math.min(25, ev.sendCount || 3));
+          for (let i = 0; i < count; i++) {
+            spawnEnemyFromQueue({ stageIdx: ev.stageIdx || state.totalStageIndex, elem: ev.elem || state.curWaveMeta.elem, isBigBoss: false }, 'normal');
+          }
+          addMultiLog(`🌪️ ${ev.fromName}의 루기아 강풍! 내 유닛 랜덤 재배치 + 슬라임 ${count}마리 유입!`, 'text-teal-700 font-bold');
+          showToast(`🌪️ ${ev.fromName} 루기아! 유닛 재배치 + 적 ${count}마리 유입!`, 'bg-teal-700 border-teal-800 text-white');
         }
       } else if (ev.kind === 'jynx_spawn') {
-        addMultiLog(`💋 ${ev.fromName}의 루주라 효과로 슬라임 추가 젠!`, 'text-pink-700');
         if (state.running && state.myAlive && state.loopPath.length > 0) {
-          spawnEnemyFromQueue({ stageIdx: state.totalStageIndex, elem: state.curWaveMeta.elem, isBigBoss: false }, 'normal');
+          spawnEnemyFromQueue({ stageIdx: ev.stageIdx || state.totalStageIndex, elem: ev.elem || state.curWaveMeta.elem, isBigBoss: false }, 'normal');
+          addMultiLog(`💋 ${ev.fromName}의 루주라 효과로 슬라임 1마리 추가 젠!`, 'text-pink-700 font-bold');
+          showToast(`💋 ${ev.fromName}의 루주라! 슬라임 1마리 추가 젠!`, 'bg-pink-600 border-pink-700 text-white');
         }
       } else if (ev.kind === 'map_swap' && ev.targetId === p2p.myId) {
         loadMap(ev.newMapIndex); realignUnitsAfterMapChange();
+        sendMyBoardSnapshot();
         addMultiLog(`🔄 ${ev.fromName}의 룰렛으로 맵 형상이 맞교환되었습니다!`, 'text-fuchsia-700 font-bold');
-        showToast(`🔄 ${ev.fromName}과 맵이 맞교환되었습니다!`);
+        showToast(`🔄 ${ev.fromName}과 맵이 맞교환되었습니다!`, 'bg-fuchsia-700 border-fuchsia-800 text-white');
+      } else if (ev.kind === 'rival_pick') {
+        p2p.picks = p2p.picks || {};
+        p2p.picks[ev.fromId] = ev.targetId;
+        if (ev.targetId === p2p.myId && state.pickedRivalId === ev.fromId) {
+          state.currentDuelRivalId = ev.fromId;
+          addMultiLog(`💘 ${ev.fromName}과 서로 지목 성사! 먼저 보스 클리어 시 큰 보상!`, 'text-amber-700 font-bold');
+          showToast(`💘 ${ev.fromName}과 1:1 대전 성사!`, 'bg-amber-600 border-amber-700 text-white');
+          renderMulti();
+        }
+      } else if (ev.kind === 'coop_support' && state.mode === 'coop' && state.running && state.myAlive && state.enemies.length > 0) {
+        const t = state.enemies[0];
+        spawnEffect(t.x, t.y, 2.2, '#10b981', 'ring');
+        state.enemies.forEach(e => {
+          if (Math.hypot(e.x - t.x, e.y - t.y) <= 2.2) { e.hp -= e.maxHp * 0.14; if (e.hp <= 0) handleEnemyKill(e, null); }
+        });
+        spawnFloatText(t.x, t.y - 0.2, `🤝 ${ev.fromName} 지원포격!`, '#059669');
+        addMultiLog(`🤝 ${ev.fromName}님의 협동 지원 포격 도착!`, 'text-emerald-700 font-bold');
+      } else if (ev.kind === 'duel_win' && ev.rivalId === p2p.myId && state.currentDuelRivalId === ev.fromId) {
+        state.gold += 10;
+        state.currentDuelRivalId = null;
+        addMultiLog(`🤝 ${ev.fromName}이 먼저 클리어했지만 대전 참가 보상 +10G 획득!`, 'text-sky-700 font-bold');
+        showToast('🤝 대전 참가 보상 +10G!', 'bg-sky-600 border-sky-700 text-white');
+        updateHUD(); renderMulti();
       }
     }
 
     function sendMyBoardSnapshot() {
-      if (state.mode !== 'multi' || !p2p.liveP2P) return;
+      if ((state.mode !== 'multi' && state.mode !== 'coop') || !p2p.liveP2P) return;
       const snap = {
         id: p2p.myId,
         name: p2p.myName,
@@ -2169,9 +2261,11 @@
     function resizeCanvas() {
       const wrap = $('canvas-wrap');
       const rect = wrap.getBoundingClientRect();
-      const isMobile = window.innerWidth < 1024;
-      const availW = Math.max(260, rect.width - 10);
-      const availH = isMobile ? Math.min(360, Math.max(220, window.innerHeight * 0.42)) : Math.max(220, rect.height - 12);
+      const isMobile = window.innerWidth < 1280;
+      const availW = Math.max(240, rect.width - 8);
+      const availH = isMobile
+        ? Math.min(270, Math.max(170, Math.floor(window.innerHeight * 0.31)))
+        : Math.max(220, rect.height - 12);
       tileSize = Math.floor(Math.min(availW / GRID_COLS, availH / GRID_ROWS));
       const w = tileSize * GRID_COLS, h = tileSize * GRID_ROWS;
       const dpr = window.devicePixelRatio || 1;
@@ -2618,7 +2712,7 @@
     // ================= UI RENDERING =================
     function updateHUD() {
       const theme = getChapterTheme();
-      $('hud-mode').textContent = state.mode === 'solo' ? '솔로' : (state.mode === 'coop' ? '협동(250%)' : `멀티(${state.multiPlayerCount}인)`);
+      $('hud-mode').textContent = state.mode === 'solo' ? '솔로' : (state.mode === 'coop' ? `협동${getCoopPlayerCount()}인(${Math.round(getCoopHpMultiplier()*100)}%)` : `멀티(${state.multiPlayerCount}인)`);
       $('hud-stage').textContent = `${state.stageMajor}-${state.stageMinor} ${theme.name}`;
       $('hud-gold').textContent = String(state.gold);
       $('hud-interest').textContent = `(이자 +${getInterestAmount()})`;
@@ -2680,12 +2774,12 @@
       let html = '';
       for (let i = 0; i < 8; i++) {
         const item = state.bench[i];
-        if (!item) html += `<div class="h-14 rounded-lg bg-slate-100 border-2 border-dashed border-slate-300"></div>`;
+        if (!item) html += `<div class="h-10 sm:h-14 rounded-lg bg-slate-100 border border-dashed border-slate-300"></div>`;
         else {
           const def = UNIT_MAP[item.defId], elem = ELEMENTS[def.elem];
           const isSel = state.selectedBenchIdx === i;
           html += `
-            <div data-bench-idx="${i}" data-def-id="${def.id}" data-lv="${item.level}" class="bench-slot-btn h-14 p-1 rounded-lg ${isSel ? 'bg-indigo-100 border-indigo-600 ring-2 ring-indigo-400' : 'bg-white border-slate-300 hover:border-indigo-500'} border-2 flex flex-col items-center justify-center gap-0.5 cursor-grab active:cursor-grabbing shadow-sm">
+            <div data-bench-idx="${i}" data-def-id="${def.id}" data-lv="${item.level}" class="bench-slot-btn h-10 sm:h-14 p-0.5 sm:p-1 rounded-lg ${isSel ? 'bg-indigo-100 border-indigo-600 ring-2 ring-indigo-400' : 'bg-white border-slate-300 hover:border-indigo-500'} border-2 flex flex-col items-center justify-center gap-0.5 cursor-grab active:cursor-grabbing shadow-sm">
               <div class="unit-swatch w-6 h-6" style="background:${unitGradientCSS(def.colors)}; border-color:${elem.border};"></div>
               <span class="text-[11px] font-extrabold text-slate-900 truncate w-full text-center">${def.hero ? '👑' : starText(item.level)} ${def.name}</span>
             </div>
@@ -2767,12 +2861,14 @@
 
     function renderMulti() {
       const tag = $('multi-status-tag'), list = $('rivals-list'), betBox = $('betting-box');
-      if (state.mode !== 'multi') {
-        tag.textContent = '멀티모드 전용';
-        list.innerHTML = `<div class="text-xs text-slate-500 py-3 text-center">게임 시작 시 [멀티모드]를 선택하면 활성화됩니다.</div>`;
+      if (state.mode !== 'multi' && state.mode !== 'coop') {
+        tag.textContent = '멀티/협동 전용';
+        list.innerHTML = `<div class="text-xs text-slate-500 py-3 text-center">게임 시작 시 [협동모드] 또는 [멀티모드]를 선택하면 활성화됩니다.</div>`;
         betBox.classList.add('hidden'); return;
       }
-      tag.textContent = state.currentDuelRivalId ? '💘 대전 성사!' : '대결 상대 지목 가능';
+      tag.textContent = state.mode === 'coop'
+        ? `🤝 협동 ${getCoopPlayerCount()}인 (HP ${Math.round(getCoopHpMultiplier()*100)}%)`
+        : (state.currentDuelRivalId ? '💘 대전 성사!' : '대결 상대 지목 가능');
       const others = p2p.liveP2P
         ? p2p.players.filter(p => p.id !== p2p.myId).map(p => {
             const snap = p2p.snapshots[p.id];
@@ -2801,7 +2897,17 @@
         `;
       }).join('');
       list.querySelectorAll('button[data-pick-rival]').forEach(b => {
-        b.addEventListener('click', () => { state.pickedRivalId = b.dataset.pickRival; renderMulti(); });
+        b.addEventListener('click', () => {
+          state.pickedRivalId = b.dataset.pickRival;
+          if (p2p.liveP2P) {
+            broadcastP2P({ type: 'game_event', event: { kind: 'rival_pick', fromId: p2p.myId, fromName: p2p.myName, targetId: state.pickedRivalId } });
+            if (p2p.picks && p2p.picks[state.pickedRivalId] === p2p.myId) {
+              state.currentDuelRivalId = state.pickedRivalId;
+              showToast('💘 서로 지목 성사! 먼저 보스 클리어 시 +25G!', 'bg-amber-600 border-amber-700 text-white');
+            }
+          }
+          renderMulti();
+        });
       });
       list.querySelectorAll('button[data-spectate-id]').forEach(b => {
         b.addEventListener('click', () => {
@@ -2931,7 +3037,7 @@
             x.classList.toggle('border-indigo-600', on); x.classList.toggle('bg-indigo-50/70', on);
             x.classList.toggle('border-slate-200', !on); x.classList.toggle('bg-white', !on);
           });
-          $('multi-count-wrap').classList.toggle('hidden', chosenStartMode !== 'multi');
+          $('multi-count-wrap').classList.toggle('hidden', chosenStartMode !== 'multi' && chosenStartMode !== 'coop');
           renderStarterPicker();
         });
       });
@@ -2971,7 +3077,7 @@
         broadcastP2P({ type: 'room_state', code: p2p.code, players: p2p.players });
         renderLobby();
         if (p2p.players.length >= 2 && p2p.players.every(p => p.ready) && chosenStarters.length === 3) {
-          broadcastP2P({ type: 'start_game', players: p2p.players });
+          broadcastP2P({ type: 'start_game', mode: chosenStartMode, players: p2p.players });
           showToast(`🚀 전원(${p2p.players.length}명) 준비완료! 멀티 시작!`, 'bg-emerald-600 border-emerald-700 text-white');
           setTimeout(() => launchGame(), 500);
         }
@@ -3090,6 +3196,7 @@
                   if (me) p2p.myReady = me.ready;
                   renderLobby();
                 } else if (msg.type === 'start_game') {
+                  if (msg.mode) chosenStartMode = msg.mode;
                   p2p.players = msg.players;
                   state.multiPlayerCount = Math.max(2, p2p.players.length);
                   showToast('🚀 전원 준비완료! 게임을 시작합니다!', 'bg-emerald-600 border-emerald-700 text-white');
@@ -3160,7 +3267,7 @@
       SFX.init();
       state.running = true; state.paused = false; state.myAlive = true; state.spectateId = null;
       state.myWantedSpeed = 1; state.speedIdx = 0; state.speed = 1; state.mode = chosenStartMode;
-      p2p.gameStarted = (chosenStartMode === 'multi' && p2p.liveP2P);
+      p2p.gameStarted = ((chosenStartMode === 'multi' || chosenStartMode === 'coop') && p2p.liveP2P);
       p2p.snapshots = {}; p2p.speedVotes = {};
       p2p.players.forEach(p => { p.alive = true; p2p.speedVotes[p.id] = 1; });
       $('spectate-banner').classList.add('hidden');
@@ -3223,7 +3330,7 @@
         state.speedIdx = (state.speedIdx + 1) % SPEED_STEPS.length;
         state.myWantedSpeed = SPEED_STEPS[state.speedIdx];
         p2p.speedVotes[p2p.myId] = state.myWantedSpeed;
-        if (state.mode === 'multi' && p2p.liveP2P) {
+        if ((state.mode === 'multi' || state.mode === 'coop') && p2p.liveP2P) {
           broadcastP2P({ type: 'speed_vote', playerId: p2p.myId, speed: state.myWantedSpeed });
         }
         recalcMultiSpeed();
@@ -3234,7 +3341,7 @@
         $('spectate-banner').classList.add('hidden');
         renderMulti();
       });
-      $('btn-pause').addEventListener('click', () => { state.paused = !state.paused; $('btn-pause').textContent = state.paused ? '재개' : '일시정지'; });
+      $('btn-pause').addEventListener('click', () => { state.paused = !state.paused; $('btn-pause').textContent = state.paused ? '▶' : '⏸'; });
       $('btn-mute').addEventListener('click', () => { SFX.muted = !SFX.muted; $('btn-mute').textContent = SFX.muted ? '🔇' : '🔊'; });
       $('btn-help').addEventListener('click', () => $('help-modal').classList.remove('hidden'));
       $('btn-close-help').addEventListener('click', () => $('help-modal').classList.add('hidden'));
