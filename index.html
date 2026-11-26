@@ -74,6 +74,7 @@
         <button id="btn-speed" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 font-black text-xs text-indigo-900">1x</button>
         <button id="btn-pause" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 font-bold text-xs text-slate-800">일시정지</button>
         <button id="btn-mute" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 font-bold text-sm">🔊</button>
+        <button id="btn-help" class="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 font-extrabold text-xs text-emerald-900">❓ 도움말</button>
         <button id="btn-codex" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 font-extrabold text-xs text-indigo-900">📖 도감</button>
         <button id="btn-dev-toggle" class="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-300 font-extrabold text-xs text-amber-900">🛠️ 개발자</button>
       </div>
@@ -104,7 +105,7 @@
           <span id="spectate-banner-text">👁️ 관전 중</span>
           <button id="btn-stop-spectate" class="px-2.5 py-0.5 rounded-full bg-white text-indigo-800 hover:bg-indigo-50 font-black">🏠 내 맵으로</button>
         </div>
-        <canvas id="game-canvas" class="block rounded-lg cursor-grab active:cursor-grabbing"></canvas>
+        <canvas id="game-canvas" style="touch-action: none;" class="block rounded-lg cursor-grab active:cursor-grabbing"></canvas>
         <div id="toast-container" class="pointer-events-none absolute top-12 left-1/2 -translate-x-1/2 flex flex-col gap-1.5 z-20 w-[92%] max-w-md items-center"></div>
       </div>
 
@@ -113,8 +114,9 @@
         <div id="selection-info" class="text-slate-700 text-sm font-medium">
           필드 유닛을 클릭하면 <b>개인 강화</b>·대기석 회수·판매를 할 수 있고, 드래그로 배치 및 자리 맞교환이 가능합니다.
         </div>
-        <div id="selection-actions" class="flex items-center gap-2 hidden">
+        <div id="selection-actions" class="flex items-center gap-1.5 flex-wrap hidden">
           <button id="btn-unit-lvup" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-sm">⬆ 개인강화 (15G)</button>
+          <button id="btn-mobile-move" class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs">🔀 이동/교환</button>
           <button id="btn-return-bench" class="px-3 py-1.5 rounded-lg bg-slate-600 hover:bg-slate-500 text-white font-bold text-xs">대기석</button>
           <button id="btn-sell-unit" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs">판매</button>
         </div>
@@ -390,6 +392,67 @@
     </div>
   </div>
 
+  <!-- ELEMENTAL HELP MODAL -->
+  <div id="help-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="card-surface rounded-3xl max-w-2xl w-full p-5 max-h-[88vh] overflow-y-auto custom-scroll">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-black text-emerald-800">❓ 속성 반응 & 딜 증가 한눈에 보기</h2>
+        <button id="btn-close-help" class="px-3.5 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-extrabold">닫기</button>
+      </div>
+
+      <div class="mb-3 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-950">
+        💡 <b>기본 규칙</b>: 슬라임과 <b>같은 속성 공격은 면역(0 피해)</b>이지만, 아래 상성 조합은 <b>증폭 피해·상태이상</b>이 즉시 발동됩니다!
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs mb-3">
+        <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200">
+          <div class="font-black text-rose-800 mb-0.5">🔥 화염 + 💧 물 → 증발 (1.5배)</div>
+          <div class="text-slate-700">물이 묻은 적(또는 물 슬라임)에 화염 타격 시 <b>피해 1.5배</b> (물 소멸)</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200">
+          <div class="font-black text-rose-800 mb-0.5">🔥 화염 + ❄️ 얼음 → 융해 (2.0배)</div>
+          <div class="text-slate-700">얼음/결빙 상태 적에 화염 타격 시 <b>피해 2배</b> (얼음 소멸)</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-sky-50 border border-sky-200">
+          <div class="font-black text-sky-900 mb-0.5">❄️ 얼음 + 🔥 화염(선부여) → 역융해 (3.0배)</div>
+          <div class="text-slate-700">화염이 먼저 묻은 적(또는 화염 슬라임)에 얼음 타격 시 <b>피해 3배</b>!</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-sky-50 border border-sky-200">
+          <div class="font-black text-sky-900 mb-0.5">💧 물 + ❄️ 얼음 → 결빙 + 🪨 바위 쇄빙 (1.65배)</div>
+          <div class="text-slate-700">적이 완전히 얼어 멈춤! 결빙된 적을 <b>바위(무속성)</b>로 치면 <b>1.65배 쇄빙</b></div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-purple-50 border border-purple-200">
+          <div class="font-black text-purple-900 mb-0.5">⚡ 전기 + 💧 물 → 감전 (경직+도트)</div>
+          <div class="text-slate-700">0.5초마다 경직+추가 피해 (<b>물·전기 잔류</b>되어 화염 등 추가 증폭 가능!)</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-orange-50 border border-orange-200">
+          <div class="font-black text-orange-900 mb-0.5">🔥 화염 + ⚡ 전기 → 과부하 폭발</div>
+          <div class="text-slate-700">넓은 범위 폭발 추가 피해 + 확률적 <b>기절</b></div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+          <div class="font-black text-emerald-900 mb-0.5">🌿 풀 + 🔥 화염 → 영구 화상</div>
+          <div class="text-slate-700">지속 화상 피해 (<b>불·풀 잔류</b>되어 다른 속성으로 추가 증폭 가능!)</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+          <div class="font-black text-emerald-900 mb-0.5">🌿 풀 + ⚡ 전기 → 시한폭탄 (최대체력 5%)</div>
+          <div class="text-slate-700">1.2초 후 터져 주변 적에게 <b>최대 체력 5% 고정 피해</b></div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-teal-50 border border-teal-200">
+          <div class="font-black text-teal-900 mb-0.5">🌪️ 바람 + 모든 속성 → 확산 (현재체력 2.5%)</div>
+          <div class="text-slate-700">속성 있는 적에게 <b>현재 체력 2.5% 고정 피해</b> + 주변에 속성 확산</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-blue-50 border border-blue-200">
+          <div class="font-black text-blue-900 mb-0.5">🌧️ 누리레르 비 영역 → 최종 피해 2배 (200%)</div>
+          <div class="text-slate-700">비 영역 안의 적은 <b>물 속성 지속 부여 + 모든 최종 피해 2배</b>!</div>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+        <b>보스 참고</b>: 5번째 스테이지(X-5)는 보스가 시작과 동시에 등장하며 <b>1분 30초(90초)</b> 안에 정리해야 합니다.
+      </div>
+    </div>
+  </div>
+
   <!-- CODEX MODAL -->
   <div id="codex-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="card-surface rounded-3xl max-w-5xl w-full p-5 max-h-[88vh] flex flex-col">
@@ -399,7 +462,7 @@
       </div>
       <div class="text-xs text-slate-800 bg-indigo-50 p-3 rounded-xl border border-indigo-200 mb-3 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
         <div>• <b>5성 합성</b>: 3마리 모이면 자동 합성! <b>1★(1x) → 2★(1.85x) → 3★(3.1x) → 4★(5.2x) → 5★(8.8x)</b></div>
-        <div>• <b>누적 웨이브 & 제한시간</b>: X-1~X-4는 26초마다 적들이 누적 등장! X-5 보스는 55초 내 미클리어 시 패배!</div>
+        <div>• <b>누적 웨이브 & 제한시간</b>: X-1~X-4는 26초마다 적들이 누적 등장! X-5 보스는 1분 30초(90초) 내 미클리어 시 패배!</div>
         <div>• <b>슬라임 상성</b>: 동일 속성 공격·빙결(얼음 슬라임)은 면역! 단, 물+얼음 결빙·불+풀 화상 등 상성 반응은 즉시 발동!</div>
         <div>• <b>개인 강화</b>: 필드 유닛 클릭 시 저렴한 비용(15G~)으로 해당 유닛만 공격력+12%·공속+8% 강화 가능!</div>
       </div>
@@ -731,7 +794,7 @@
       effects: [], floatTexts: [], rainZones: [], poisonZones: [], blockers: [], bombs: [], waves: [],
 
       waveElapsed: 0, animTime: 0, enemiesKilledTotal: 0,
-      selectedBenchIdx: null, selectedUnitUid: null, drag: null,
+      selectedBenchIdx: null, selectedUnitUid: null, mobileMoveUid: null, drag: null,
       devEditMode: false, devBrush: 1,
 
       rivals: [], pickedRivalId: null, currentDuelRivalId: null, aiDuelPair: null,
@@ -1209,11 +1272,11 @@
       });
 
       if (meta.isBigBoss) {
-        // #6 Stage X-5 Boss Time Limit (55 seconds to clear ALL enemies!)
-        state.bossTimeLimit = 55.0;
+        // Stage X-5 Boss Time Limit: 90 seconds (1분 30초) & Boss spawns IMMEDIATELY!
+        state.bossTimeLimit = 90.0;
         state.nextWaveTimer = 0;
-        addLog(`👑 ${state.stageMajor}-5 대보스 등장! 55초 내 모든 적을 처치하세요!`, 'text-rose-700 font-black');
-        showToast(`👑 ${state.stageMajor}-5 대보스 출현! 제한시간 55초!`, 'bg-rose-600 border-rose-700 text-white');
+        addLog(`👑 ${state.stageMajor}-5 대보스 즉시 등장! 1분 30초(90초) 내 처치하세요!`, 'text-rose-700 font-black');
+        showToast(`👑 ${state.stageMajor}-5 대보스 즉시 출현! 제한시간 1분 30초!`, 'bg-rose-600 border-rose-700 text-white');
       } else {
         // #4 Sub-stages X-1..X-4 automatically overlap after 26 seconds!
         state.nextWaveTimer = 26.0;
@@ -1492,7 +1555,8 @@
         // Boss stage X-5: Must clear ALL enemies within bossTimeLimit!
         state.bossTimeLimit -= simDt;
         const sec = Math.max(0, Math.ceil(state.bossTimeLimit));
-        $('wave-status-badge').textContent = `🚨 보스 제한 ${sec}초`;
+        const bm = Math.floor(sec / 60), bs = String(sec % 60).padStart(2, '0');
+        $('wave-status-badge').textContent = `🚨 보스 제한 ${bm}:${bs}`;
         $('wave-status-badge').className = sec <= 15 ? 'px-2.5 py-1 rounded-lg bg-rose-600 text-white font-black text-xs animate-pulse' : 'px-2.5 py-1 rounded-lg bg-rose-100 text-rose-900 font-black text-xs';
 
         if (state.spawnQueues.length === 0 && state.enemies.length === 0) {
@@ -1523,7 +1587,7 @@
         q.timer -= simDt;
         if (q.timer <= 0 && q.remaining > 0) {
           let role = 'normal';
-          if (q.remaining === 1) role = q.isBigBoss ? 'boss' : 'miniboss';
+          if (q.remaining === q.total) role = q.isBigBoss ? 'boss' : 'miniboss';
           else if (q.isBigBoss && q.remaining === Math.floor(q.total / 2)) role = 'miniboss';
           spawnEnemyFromQueue(q, role);
           q.remaining--;
@@ -2105,8 +2169,9 @@
     function resizeCanvas() {
       const wrap = $('canvas-wrap');
       const rect = wrap.getBoundingClientRect();
-      const availW = Math.max(260, rect.width - 12);
-      const availH = Math.max(220, rect.height - 12);
+      const isMobile = window.innerWidth < 1024;
+      const availW = Math.max(260, rect.width - 10);
+      const availH = isMobile ? Math.min(360, Math.max(220, window.innerHeight * 0.42)) : Math.max(220, rect.height - 12);
       tileSize = Math.floor(Math.min(availW / GRID_COLS, availH / GRID_ROWS));
       const w = tileSize * GRID_COLS, h = tileSize * GRID_ROWS;
       const dpr = window.devicePixelRatio || 1;
@@ -2272,7 +2337,10 @@
       const theme = getChapterTheme();
       ctx.fillStyle = theme.bg; ctx.fillRect(0, 0, w, h);
 
-      const draggingDef = state.drag ? UNIT_MAP[state.drag.defId] : null;
+      const activePlaceDefId = state.drag ? state.drag.defId
+        : (state.selectedBenchIdx !== null && state.bench[state.selectedBenchIdx] ? state.bench[state.selectedBenchIdx].defId
+        : (state.mobileMoveUid !== null && state.units.find(x => x.uid === state.mobileMoveUid) ? state.units.find(x => x.uid === state.mobileMoveUid).defId : null));
+      const draggingDef = activePlaceDefId ? UNIT_MAP[activePlaceDefId] : null;
       for (let r = 0; r < GRID_ROWS; r++) {
         for (let c = 0; c < GRID_COLS; c++) {
           const x = offsetX + c * tileSize, y = offsetY + r * tileSize, cell = state.grid[r]?.[c] ?? 0;
@@ -2401,12 +2469,23 @@
       const rect = $('bench-dropzone').getBoundingClientRect();
       return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
     }
-    function startDragFromBench(benchIdx, clientX, clientY) {
+    function startDragFromBench(benchIdx, clientX, clientY, isTouch = false) {
       const item = state.bench[benchIdx]; if (!item) return;
       hideUnitTooltip();
+      // Toggle tap-select for mobile (and allow drag on desktop!)
+      if (isTouch) {
+        state.selectedBenchIdx = (state.selectedBenchIdx === benchIdx) ? null : benchIdx;
+        state.selectedUnitUid = null; state.mobileMoveUid = null;
+        renderBench(); updateSelectionBar();
+        if (state.selectedBenchIdx !== null) {
+          showToast(`👆 [${UNIT_MAP[item.defId].name}] 선택됨! 맵의 강조된 칸을 터치해 배치하세요.`, 'bg-indigo-700 border-indigo-800 text-white');
+        }
+        return;
+      }
       const cell = getGridCellFromClient(clientX, clientY);
       state.drag = { source: 'bench', benchIdx, defId: item.defId, level: item.level, hoverR: cell.r, hoverC: cell.c };
-      state.selectedBenchIdx = benchIdx; state.selectedUnitUid = null; updateSelectionBar();
+      state.selectedBenchIdx = benchIdx; state.selectedUnitUid = null; state.mobileMoveUid = null;
+      renderBench(); updateSelectionBar();
     }
 
     canvas.addEventListener('mousemove', (ev) => {
@@ -2424,10 +2503,64 @@
       const { r, c } = getGridCellFromClient(ev.clientX, ev.clientY);
       if (r < 0 || r >= GRID_ROWS || c < 0 || c >= GRID_COLS) return;
       if (state.devEditMode) { state.grid[r][c] = state.devBrush; state.loopPath = extractLoopPathFromGrid(state.grid); state.spawnIndices = [0]; realignUnitsAfterMapChange(); return; }
+
+      const occupant = state.units.find(u => u.r === r && u.c === c);
+
+      // 1) Tap-to-Place / Swap from Bench (Mobile-friendly!)
+      if (state.selectedBenchIdx !== null && !state.drag) {
+        const item = state.bench[state.selectedBenchIdx];
+        if (item) {
+          if (!canTileAccept(item.defId, r, c)) {
+            showToast(`[${placementBadgeText(UNIT_MAP[item.defId])}] 칸을 터치해 배치하세요!`, 'bg-rose-600 border-rose-700 text-white');
+            return;
+          }
+          if (occupant) {
+            state.units = state.units.filter(u => u.uid !== occupant.uid);
+            state.bench[state.selectedBenchIdx] = { uid: occupant.uid, defId: occupant.defId, level: occupant.level, unitLv: occupant.unitLv || 0 };
+            placeUnitOnBoard(item, r, c);
+            showToast('🔄 대기석과 필드 유닛 맞교환!');
+          } else {
+            placeUnitOnBoard(item, r, c);
+            state.bench.splice(state.selectedBenchIdx, 1);
+          }
+          state.selectedBenchIdx = null;
+          renderBench(); updateSelectionBar();
+          return;
+        }
+      }
+
+      // 2) Tap-to-Move / Swap existing Board Unit (Mobile-friendly!)
+      if (state.mobileMoveUid !== null) {
+        const u = state.units.find(x => x.uid === state.mobileMoveUid);
+        state.mobileMoveUid = null;
+        if (u && (u.r !== r || u.c !== c)) {
+          if (!canTileAccept(u.defId, r, c)) {
+            showToast(`[${placementBadgeText(UNIT_MAP[u.defId])}] 칸에만 이동 가능!`, 'bg-rose-600 border-rose-700 text-white');
+          } else if (occupant) {
+            if (!canTileAccept(occupant.defId, u.r, u.c)) {
+              showToast('상대 유닛과 맞교환할 수 없는 칸입니다!', 'bg-rose-600 border-rose-700 text-white');
+            } else {
+              const oldR = u.r, oldC = u.c;
+              u.r = r; u.c = c; u.x = c + 0.5; u.y = r + 0.5;
+              occupant.r = oldR; occupant.c = oldC; occupant.x = oldC + 0.5; occupant.y = oldR + 0.5;
+              SFX.play('buy'); showToast('🔄 자리 맞교환 완료!');
+            }
+          } else {
+            u.r = r; u.c = c; u.x = c + 0.5; u.y = r + 0.5;
+            SFX.play('buy'); showToast('이동 완료!');
+          }
+        }
+        updateSelectionBar();
+        return;
+      }
+
+      // 3) Select board unit (and start drag on desktop mouse)
       const clickedUnit = state.units.find(u => Math.abs(u.x - (c + 0.5)) < 0.6 && Math.abs(u.y - (r + 0.5)) < 0.6);
       if (clickedUnit) {
         state.selectedUnitUid = clickedUnit.uid;
-        state.drag = { source: 'board', unitUid: clickedUnit.uid, defId: clickedUnit.defId, level: clickedUnit.level, hoverR: r, hoverC: c };
+        if (ev.pointerType !== 'touch') {
+          state.drag = { source: 'board', unitUid: clickedUnit.uid, defId: clickedUnit.defId, level: clickedUnit.level, hoverR: r, hoverC: c };
+        }
         updateSelectionBar();
       } else { state.selectedUnitUid = null; updateSelectionBar(); }
     });
@@ -2550,8 +2683,9 @@
         if (!item) html += `<div class="h-14 rounded-lg bg-slate-100 border-2 border-dashed border-slate-300"></div>`;
         else {
           const def = UNIT_MAP[item.defId], elem = ELEMENTS[def.elem];
+          const isSel = state.selectedBenchIdx === i;
           html += `
-            <div data-bench-idx="${i}" data-def-id="${def.id}" data-lv="${item.level}" class="bench-slot-btn h-14 p-1 rounded-lg bg-white border-2 border-slate-300 hover:border-indigo-500 flex flex-col items-center justify-center gap-0.5 cursor-grab active:cursor-grabbing shadow-sm">
+            <div data-bench-idx="${i}" data-def-id="${def.id}" data-lv="${item.level}" class="bench-slot-btn h-14 p-1 rounded-lg ${isSel ? 'bg-indigo-100 border-indigo-600 ring-2 ring-indigo-400' : 'bg-white border-slate-300 hover:border-indigo-500'} border-2 flex flex-col items-center justify-center gap-0.5 cursor-grab active:cursor-grabbing shadow-sm">
               <div class="unit-swatch w-6 h-6" style="background:${unitGradientCSS(def.colors)}; border-color:${elem.border};"></div>
               <span class="text-[11px] font-extrabold text-slate-900 truncate w-full text-center">${def.hero ? '👑' : starText(item.level)} ${def.name}</span>
             </div>
@@ -2563,12 +2697,18 @@
         el.addEventListener('mouseenter', (ev) => showUnitTooltip(el.dataset.defId, Number(el.dataset.lv), ev));
         el.addEventListener('mousemove', positionTooltip);
         el.addEventListener('mouseleave', hideUnitTooltip);
-        el.addEventListener('pointerdown', (ev) => { ev.preventDefault(); startDragFromBench(Number(el.dataset.benchIdx), ev.clientX, ev.clientY); });
+        el.addEventListener('pointerdown', (ev) => { if (ev.pointerType !== 'touch') ev.preventDefault(); startDragFromBench(Number(el.dataset.benchIdx), ev.clientX, ev.clientY, ev.pointerType === 'touch'); });
       });
     }
 
     function updateSelectionBar() {
       const info = $('selection-info'), actions = $('selection-actions');
+      if (state.selectedBenchIdx !== null && state.bench[state.selectedBenchIdx]) {
+        const b = state.bench[state.selectedBenchIdx], def = UNIT_MAP[b.defId];
+        info.innerHTML = `<b class="text-indigo-800">👆 [${placementBadgeText(def)}] ${def.name} ${starText(b.level)} 선택됨</b> — 맵의 강조된 칸을 터치(또는 드래그)해 배치하세요!`;
+        actions.classList.add('hidden');
+        return;
+      }
       if (state.selectedUnitUid !== null) {
         const u = state.units.find(x => x.uid === state.selectedUnitUid);
         if (u) {
@@ -3096,6 +3236,8 @@
       });
       $('btn-pause').addEventListener('click', () => { state.paused = !state.paused; $('btn-pause').textContent = state.paused ? '재개' : '일시정지'; });
       $('btn-mute').addEventListener('click', () => { SFX.muted = !SFX.muted; $('btn-mute').textContent = SFX.muted ? '🔇' : '🔊'; });
+      $('btn-help').addEventListener('click', () => $('help-modal').classList.remove('hidden'));
+      $('btn-close-help').addEventListener('click', () => $('help-modal').classList.add('hidden'));
       $('btn-codex').addEventListener('click', () => $('codex-modal').classList.remove('hidden'));
       $('btn-close-codex').addEventListener('click', () => $('codex-modal').classList.add('hidden'));
       $('btn-dev-toggle').addEventListener('click', () => document.querySelector('.tab-btn[data-tab="dev"]').click());
@@ -3134,6 +3276,12 @@
         SFX.play('merge');
         spawnFloatText(u.x, u.y - 0.3, `⬆ +${u.unitLv}!`, '#d97706');
         updateHUD(); updateSelectionBar();
+      });
+
+      $('btn-mobile-move').addEventListener('click', () => {
+        if (state.selectedUnitUid === null) return;
+        state.mobileMoveUid = state.selectedUnitUid;
+        showToast('👆 이동하거나 맞교환할 맵의 강조된 칸을 터치하세요!', 'bg-sky-600 border-sky-700 text-white');
       });
 
       $('btn-return-bench').addEventListener('click', () => {
